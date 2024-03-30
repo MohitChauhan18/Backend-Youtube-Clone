@@ -27,7 +27,7 @@ const createTweet = asyncHandler(async (req, res) => {
 const getUserTweets = asyncHandler(async (req, res) => {
     // TODO: get user tweets
 
-    const { userId } = req.body
+    const { userId } = req.params
 
     if (!isValidObjectId(userId)) {
         throw new ApiError(400, "User id is not valid");
@@ -36,7 +36,12 @@ const getUserTweets = asyncHandler(async (req, res) => {
     const pipeline = [
         {
             $match: {
-                owner: userId
+                owner: new mongoose.Types.ObjectId(userId)
+            }
+        }, {
+            $project: {
+                content: 1,
+                _id: 1,
             }
         }
     ]
@@ -44,11 +49,10 @@ const getUserTweets = asyncHandler(async (req, res) => {
     const tweets = await Tweet.aggregate(pipeline);
 
     if (tweets.length == 0) {
-        return res.status(200).json(200, tweets, "not tweet was founded");
+        return res.status(200).json(new ApiResponse(200, tweets, "no tweet was founded"));
     }
 
-
-    return res.status(200).json(200, tweets, "Successfully founded tweets");
+    return res.status(200).json(new ApiResponse(200, tweets, "Successfully founded tweets"));
 
 })
 
@@ -76,7 +80,7 @@ const updateTweet = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Content is not updated");
     }
 
-    return res.status(200).json(200, updatedTweet, "Successfully updated tweet");
+    return res.status(200).json(new ApiResponse(200, updatedTweet, "Successfully updated tweet"));
 
 
 })
@@ -96,7 +100,7 @@ const deleteTweet = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Tweet is not deleted");
     }
 
-    return res.status(200).json(200, deleteTweet, "Successfully deleted tweet");
+    return res.status(200).json(new ApiResponse(200, deleteTweet, "Successfully deleted tweet"));
 
 })
 
