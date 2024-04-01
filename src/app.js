@@ -40,9 +40,9 @@ app.use("/api/v1/dashboard", dashboardRouter)
 // Error middleware.
 app.use((err, req, res, next) => {
     // Log the error (you can customize this part)
-    console.error(err.stack);
+    console.error(err.errorstack);
     // Respond with an appropriate error message
-    res.status(err.status || 500).json({ success: false, message: err.message || 'Error From Server' });
+    res.status(err.statusStatus || 500).json({ success: false, message: err.message || 'Error From Server' });
 });
 
 // http://localhost:8000/api/v1/users/register
