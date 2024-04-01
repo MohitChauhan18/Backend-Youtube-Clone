@@ -9,6 +9,14 @@ app.use(cors({
     credentials: true
 }))
 
+// Error middleware.
+app.use((err, req, res, next) => {
+    // Log the error (you can customize this part)
+    console.error(err.stack);
+    // Respond with an appropriate error message
+    res.status(err.status || 500).json({ success: false, message: err.message || 'Error From Server' });
+});
+
 app.use(express.json({limit: "16kb"}))
 app.use(express.urlencoded({extended: true, limit: "16kb"}))
 app.use(express.static("public"))
