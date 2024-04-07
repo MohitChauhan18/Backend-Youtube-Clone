@@ -35,6 +35,19 @@ app.use("/api/v1/subscriptions", subscriptionRouter);
 app.use("/api/v1/likes", likeRouter);
 app.use("/api/v1/dashboard",dashboardRouter)
 
+// error middleware
+app.use((err, req, res, next) => {
+    console.log("error stack ::", err.stack);
+    return res.status(err.statusCode || 500)
+        .json(
+            new ApiResponse(
+                err.statusCode || 500,
+                null,
+                err.message || "Something went wrong"
+            )
+        )
+})
+
 
 
 
