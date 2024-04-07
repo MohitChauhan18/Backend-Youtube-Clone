@@ -1,17 +1,23 @@
-import { Router } from 'express';
-import {
-    createTweet,
-    deleteTweet,
-    getUserTweets,
-    updateTweet,
-} from "../controllers/tweet.controller.js"
-import {verifyJWT} from "../middlewares/auth.middleware.js"
+import express from "express";
+import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { createTweet, deleteTweet, getAllTweets, updateTweet } from "../controllers/tweet.controllers.js";
+import { checkOwner } from './../middlewares/owner.middleware.js';
+import { Tweet } from "../models/tweet.model.js";
+const router = express.Router();
 
-const router = Router();
-router.use(verifyJWT); // Apply verifyJWT middleware to all routes in this file
 
-router.route("/").post(createTweet);
-router.route("/user/:userId").get(getUserTweets);
-router.route("/:tweetId").patch(updateTweet).delete(deleteTweet);
+router.use(verifyJWT);
 
-export default router
+
+router.route("/")
+    .post(createTweet)
+
+router.route("/:userId")
+    .get(getAllTweets)
+
+router.route("/:tweetId")
+    .all(checkOwner('tweetId', Tweet))  // check owner if user is owner or not 
+    .patch(updateTweet)
+      .delete(deleteTweet)
+
+export default router;
