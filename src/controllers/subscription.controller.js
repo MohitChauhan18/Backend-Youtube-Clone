@@ -80,7 +80,7 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
                 from: "users",
                 localField: "subscriber",
                 foreignField: "_id",
-                as: "subscriberLists",
+                as: "subscriberList",
                 pipeline: [
                     {
                         $project: {
@@ -94,16 +94,21 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
         },
         {
             $addFields: {
-                subscriberLists: {
-                    $first: "$subscriberLists"
+                subscriberList: {
+                    $first: "$subscriberList"
                 }
+            }
+        },
+        {
+            $project: {
+                subscriberList: 1
             }
         }
     ])
 
     return res.status(200).json(new ApiResponse(
         200,
-        { subscriberLists: subscriptions[0]?.subscriberLists || [] },
+        { subscriberLists: subscriptions[0] || [] },
         "Subscriber lists fetched successfully"
     ))
 })
