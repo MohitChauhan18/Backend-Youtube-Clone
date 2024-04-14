@@ -33,7 +33,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
     }
     
     // strore in the database 
-    const video = Video.create({
+    const video = await Video.create({
         videoFile:{
             public_id: videoFile?.public_id,
             url: videoFile?.url
