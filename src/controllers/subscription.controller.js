@@ -83,11 +83,15 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
         subscriber: {
           $first: "$subscriber",
         },
+        isSubscribe: { // Add the isSubscribe flag
+            $eq: ["$subscriber._id", req.user?._id], // Check if the current user is the subscriber
+          },
       },
     },
     {
       $project: {
         subscriber: 1,
+        isSubscribe:1
       },
     },
   ]);
@@ -97,6 +101,15 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
 // controller to return channel list to which user has subscribed
 const getSubscribedChannels = asyncHandler(async (req, res) => {
   const { subscriberId } = req.params;
+  const verifiedsubscriberId = verifyId(subscriberId);
+  const checksubscriberExist = await User.findById(verifiedsubscriberId);
+  if (!checksubscriberExist) {
+    throw new ApiError(400, "Channel Not Found");
+  }
+  const response=await Subscription.aggregate([
+   {$match:{subscriber:verifiedsubscriberId}}
+  ])
+  res.status(200).json(new ApiResponse(200,response))
 });
 
 export { toggleSubscription, getUserChannelSubscribers, getSubscribedChannels };
