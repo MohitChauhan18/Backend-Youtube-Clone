@@ -36,8 +36,6 @@ import dashboardRouter from "./routes/dashboard.routes.js"
 // Videos Api 
 app.use("/api/v1/videos", videoRouter)
 
-
-
 //routes declaration
 app.use("/api/v1/healthcheck", healthcheckRouter)
 app.use("/api/v1/users", userRouter)

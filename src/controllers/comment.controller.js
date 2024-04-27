@@ -44,13 +44,34 @@ const getVideoComments = asyncHandler(async (req, res) => {
         }
     },
     {
-        $skip:((page-1)*limit)
+      $sort: { createdAt: -1 } // Sort by createdAt field in descending order (latest first)
     },
     {
-        $limit:limit,
+      $facet: {
+        comments: [
+          {
+            $skip: ((page - 1) * limit)
+          },
+          {
+            $limit: Number(limit)
+          }
+        ],
+        totalCount: [
+          {
+            $count: "total"
+          }
+        ]
+      }
+    },
+    {
+      $addFields:{
+        totalCount:{
+          $first:"$totalCount.total"
+        }
+      }
     }
   ]);
-  res.status(200).json(new ApiResponse("200", response));
+  res.status(200).json(new ApiResponse(200, response[0]));
 });
 
 const addComment = asyncHandler(async (req, res) => {
