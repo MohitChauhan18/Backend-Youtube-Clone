@@ -1,30 +1,30 @@
-import { ApiError } from "../utils/ApiError.js";
-import { asyncHandler } from "../utils/asyncHandler.js";
-import jwt from "jsonwebtoken"
+import JWT from "jsonwebtoken"
+import { ApiError } from "../utils/ApiError.js"
+import asyncHandler from "../utils/asyncHandler.js"
 import { User } from "../models/user.model.js";
 
-export const verifyJWT = asyncHandler(async(req, _, next) => {
+const verifyJWT = asyncHandler(async (req, res, next) => {
     try {
-        const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ", "")
-        
-        // console.log(token);
-        if (!token) {
-            throw new ApiError(401, "Unauthorized request")
+        const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ","");
+
+        if(!token){
+            throw new ApiError(400,"unauthorized request")
         }
-    
-        const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
-    
-        const user = await User.findById(decodedToken?._id).select("-password -refreshToken")
-    
+
+        const decoded = JWT.verify(token,process.env.ACCESS_TOKEN_SECRET);
+
+        const user = await User.findById(decoded?._id)
+
         if (!user) {
-            
-            throw new ApiError(401, "Invalid Access Token")
+            throw new ApiError(400,"user does not exist")
         }
-    
-        req.user = user;
-        next()
+        req.user =user;
+        next();
+
     } catch (error) {
-        throw new ApiError(401, error?.message || "Invalid access token")
+        throw new ApiError(500, error?.message || "Invalid access token")
     }
-    
-})
+}
+)
+
+export { verifyJWT }

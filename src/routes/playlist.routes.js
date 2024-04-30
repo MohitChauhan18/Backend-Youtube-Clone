@@ -1,30 +1,15 @@
-import { Router } from 'express';
-import {
-    addVideoToPlaylist,
-    createPlaylist,
-    deletePlaylist,
-    getPlaylistById,
-    getUserPlaylists,
-    removeVideoFromPlaylist,
-    updatePlaylist,
-} from "../controllers/playlist.controller.js"
-import {verifyJWT} from "../middlewares/auth.middleware.js"
+import { Router } from "express";
+import { addVideos, createPlaylist, deletePlaylist, getPlaylist, getUserPlaylist, removePlaylistVideo, updatePlaylist } from "../controllers/playlist.controller.js";
+import { verifyJWT } from "../middlewares/auth.middleware.js";
 
-const router = Router();
+const router =Router();
 
-router.use(verifyJWT); // Apply verifyJWT middleware to all routes in this file
+router.route("/").post(verifyJWT,createPlaylist);
+router.route("/add-videos/:playlistId/:videoId").post(verifyJWT,addVideos);
+router.route("/get-playlist/:playlistId").get(verifyJWT,getPlaylist);
+router.route("/get-user-playlist/:userId").get(verifyJWT,getUserPlaylist);
+router.route("/delete-playlist/:playlistId").post(verifyJWT,deletePlaylist);
+router.route("/update-playlist/:playlistId").post(verifyJWT,updatePlaylist);
+router.route("/remove-video/:playlistId/:videoId").post(verifyJWT,removePlaylistVideo)
 
-router.route("/").post(createPlaylist)
-
-router
-    .route("/:playlistId")
-    .get(getPlaylistById)
-    .patch(updatePlaylist)
-    .delete(deletePlaylist);
-
-router.route("/add/:videoId/:playlistId").patch(addVideoToPlaylist);
-router.route("/remove/:videoId/:playlistId").patch(removeVideoFromPlaylist);
-
-router.route("/user/:userId").get(getUserPlaylists);
-
-export default router
+export default router;

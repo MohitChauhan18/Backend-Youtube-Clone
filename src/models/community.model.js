@@ -1,17 +1,13 @@
 import mongoose, {Schema} from "mongoose";
 
-const commentSchema = Schema(
+const communitySchema = Schema(
     {
         content:{
             type:String,
             required:true
         },
-        video:{
-            type: Schema.Types.ObjectId,
-            ref:"Video"
-        },
         owner:{
-            type:Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref:"User"
         }
     },
@@ -20,4 +16,4 @@ const commentSchema = Schema(
     }
 )
 
-export const Comment = mongoose.model("Comment",commentSchema)
+export const Community = mongoose.model("Community",communitySchema)
