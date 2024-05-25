@@ -347,7 +347,7 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
 
 const getUserChannelProfile = asyncHandler(async (req, res) => {
     const { username } = req.params;
-    console.log(username)
+    // console.log(username)
     if (!username?.trim()) throw new ApiError(404, "User or channel not found");
     const channel = await User.aggregate(
         [
@@ -394,7 +394,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
                     }
                 }
             },
-            // stage 4 : get thr projections data which we want to send from this document;
+            // stage 4 : get the projections data which we want to send from this document;
             {
                 $project: {
                     fullName: 1,
@@ -441,7 +441,7 @@ const getUserWatchHistory = asyncHandler(async (req, res) => {
                     pipeline: [
                         {
                             $match: {
-                                delted: {
+                                deleted: {
                                     $ne: true
                                 }
                             }
