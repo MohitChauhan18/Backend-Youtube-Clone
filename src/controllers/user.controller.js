@@ -1,7 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import {ApiError} from "../utils/ApiError.js"
 import { User} from "../models/user.model.js"
-import {uploadOnCloudinary} from "../utils/cloudinary.js"
+import { uploadOnCloudinary, getPublicId, deleteFromCloudinary } from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken"
 import mongoose from "mongoose";
@@ -293,20 +293,27 @@ const updateUserAvatar = asyncHandler(async(req, res) => {
         throw new ApiError(400, "Avatar file is missing")
     }
 
-    //TODO: delete old image - assignment
+    const avatarUrl = req.user?.avatar
 
-    const avatar = await uploadOnCloudinary(avatarLocalPath)
+    const newAvatar = await uploadOnCloudinary(avatarLocalPath)
 
-    if (!avatar.url) {
+    if (!newAvatar.url) {
         throw new ApiError(400, "Error while uploading on avatar")
         
+    }
+
+    if(avatarUrl){
+        const public_id = await getPublicId(avatarUrl)
+        if(public_id){
+            await deleteFromCloudinary(public_id, "image")
+        }
     }
 
     const user = await User.findByIdAndUpdate(
         req.user?._id,
         {
             $set:{
-                avatar: avatar.url
+                avatar: newAvatar.url
             }
         },
         {new: true}
@@ -326,21 +333,27 @@ const updateUserCoverImage = asyncHandler(async(req, res) => {
         throw new ApiError(400, "Cover image file is missing")
     }
 
-    //TODO: delete old image - assignment
+    const coverImageurl = req.user?.coverImage
+
+    const newCoverImage = await uploadOnCloudinary(coverImageLocalPath)
 
 
-    const coverImage = await uploadOnCloudinary(coverImageLocalPath)
-
-    if (!coverImage.url) {
+    if (!newCoverImage.url) {
         throw new ApiError(400, "Error while uploading on avatar")
-        
+    }
+
+    if(coverImageurl){
+        const public_id = await getPublicId(coverImageurl)
+        if(public_id){
+            await deleteFromCloudinary(public_id, "image")
+        }
     }
 
     const user = await User.findByIdAndUpdate(
         req.user?._id,
         {
             $set:{
-                coverImage: coverImage.url
+                coverImage: newCoverImage.url
             }
         },
         {new: true}
