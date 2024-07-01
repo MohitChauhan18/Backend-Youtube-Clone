@@ -9,7 +9,20 @@ const getVideoComments = asyncHandler(async (req, res) => {
     const { videoId } = req.params
     const { page = 1, limit = 10 } = req.query
 
-    const comments = await Comment.find({ videoId }).skip((page - 1) * limit).limit(limit)
+    // const comments = await Comment.find({ videoId }).skip((page - 1) * limit).limit(limit)
+
+    const comments = await Comment.aggregate([
+        { $match: { video: new mongoose.Types.ObjectId(videoId) } },
+        { $skip: (page - 1) * limit },
+        { $limit: limit },
+        {
+            $project: {
+                _id: 1,
+                content: 1,
+
+            }
+        }
+    ])
 
     if (comments) {
         return res
@@ -32,10 +45,11 @@ const addComment = asyncHandler(async (req, res) => {
     const { videoId } = req.params
     const { text } = req.body
     // const { userId } = req.user
+    console.log("videoId", videoId);
 
     const comment = await Comment.create({
         content: text,
-        vido: videoId,
+        video: videoId,
         owner: req.user._id
     })
 
@@ -60,10 +74,14 @@ const updateComment = asyncHandler(async (req, res) => {
     const { commentId } = req.params
     const { text } = req.body
     const comment = await Comment.findByIdAndUpdate(commentId, {
-        content: text
+        content: text,
+
+    }, {
+        new: true
     })
 
     if (comment) {
+
         return res
             .status(200)
             .json(
@@ -79,6 +97,7 @@ const updateComment = asyncHandler(async (req, res) => {
 const deleteComment = asyncHandler(async (req, res) => {
     // TODO: delete a comment
     const { commentId } = req.params
+    console.log("commentId", commentId);
 
     const comment = await Comment.findByIdAndDelete(commentId)
 
