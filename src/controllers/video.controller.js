@@ -7,11 +7,9 @@ import {destroyCloudImage, destroyCloudVideo, uploadOnCloudinary} from "../utils
 
 
 const getAllVideos = asyncHandler(async (req, res) => {
-    const { page = 1, limit = 10, query = "", sortBy = "createdAt", sortType = 1, userId } = req.query
+    const { page = 1, limit = 10, query = "", sortBy = "createdAt", sortType = 1, userId = "" } = req.query
     //TODO: get all videos based on query, sort, pagination
-    if (userId) {
-        matchCondition.owner = new mongoose.Types.ObjectId(userId);
-    }
+    
     var videoAggregate;
     try {
         videoAggregate = Video.aggregate(
@@ -84,7 +82,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
     Video.aggregatePaginate(videoAggregate, options)
         .then(result => {
             // console.log("first")
-            if (result?.videos?.length === 0 && userId) {
+            if (result?.videos?.length === 0 ) {
                 return res.status(200).json(new ApiResponse(200, [], "No videos found"))
             }
 
