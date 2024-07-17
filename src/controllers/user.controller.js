@@ -262,29 +262,33 @@ const getCurrentUser = asyncHandler(async(req, res) => {
     ))
 })
 
-const updateAccountDetails = asyncHandler(async(req, res) => {
-    const {fullName, email} = req.body
+const updateAccountDetails = asyncHandler(async (req, res) => {
+    const {fullname, email} = req.body
 
-    if (!fullName || !email) {
-        throw new ApiError(400, "All fields are required")
+    if(!fullname && !email){
+        new ApiError(400, "Atleast one field is required")
     }
 
-    const user = await User.findByIdAndUpdate(
-        req.user?._id,
-        {
-            $set: {
-                fullName,
-                email: email
-            }
-        },
-        {new: true}
-        
-    ).select("-password")
+    const updateData = {}
+    if(email){
+        const isExist = await User.findOne({
+            email: email
+        })
+        if(isExist){
+            throw new ApiError(409, "provided email is already in use")
+        } else {
+            updateData.email = email
+        }
+    }
+    if(fullname) updateData.fullname = fullname;
+
+    const user = await User.findByIdAndUpdate(req.user?._id, {$set: updateData}, {new: true}) // If new is set to true, the updated object itself is returned
+    .select("-password -refreshToken")
 
     return res
     .status(200)
-    .json(new ApiResponse(200, user, "Account details updated successfully"))
-});
+    .json(new ApiResponse(200, user, "Account updated successfully"))
+})
 
 const updateUserAvatar = asyncHandler(async(req, res) => {
     const avatarLocalPath = req.file?.path
