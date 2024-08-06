@@ -5,6 +5,7 @@ import {uploadOnCloudinary} from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken"
 import mongoose from "mongoose";
+import fs from "fs"
 
 
 const generateAccessAndRefereshTokens = async(userId) =>{
@@ -27,8 +28,10 @@ const generateAccessAndRefereshTokens = async(userId) =>{
 const registerUser = asyncHandler( async (req, res) => {
     // get user details from frontend
     // validation - not empty
-    // check if user already exists: username, email
+
     // check for images, check for avatar
+    // check if user already exists: username, email
+    
     // upload them to cloudinary, avatar
     // create user object - create entry in db
     // remove password and refresh token field from response
@@ -45,15 +48,7 @@ const registerUser = asyncHandler( async (req, res) => {
         throw new ApiError(400, "All fields are required")
     }
 
-    const existedUser = await User.findOne({
-        $or: [{ username }, { email }]
-    })
-
-    if (existedUser) {
-        throw new ApiError(409, "User with email or username already exists")
-    }
-    //console.log(req.files);
-
+    // check for images, check for avatar
     const avatarLocalPath = req.files?.avatar[0]?.path;
     //const coverImageLocalPath = req.files?.coverImage[0]?.path;
 
@@ -67,6 +62,19 @@ const registerUser = asyncHandler( async (req, res) => {
         throw new ApiError(400, "Avatar file is required")
     }
 
+    // check if user already exists: username, email
+    const existedUser = await User.findOne({
+        $or: [{ username }, { email }]
+    })
+
+    if (existedUser) { // if user already exists remove the file from the public/temp/ directory and throw the error
+        if(avatarLocalPath) fs.unlinkSync(avatarLocalPath);
+        if(coverImageLocalPath) fs.unlinkSync(coverImageLocalPath);
+        throw new ApiError(409, "User with email or username already exists")
+    }
+    //console.log(req.files);
+
+    // Upload Image on Cloudinary
     const avatar = await uploadOnCloudinary(avatarLocalPath)
     const coverImage = await uploadOnCloudinary(coverImageLocalPath)
 
