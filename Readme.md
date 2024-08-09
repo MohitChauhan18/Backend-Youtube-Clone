@@ -1,24 +1,93 @@
-# chai aur backend  series 
+# QuickManage App
 
-This is a video series on backend with javascript
-- [Model link](https://app.eraser.io/workspace/YtPqZ1VogxGy1jzIDkzj?origin=share)
+QuickManage is a task management app developed using Flutter. The app allows users to manage tasks efficiently with a clean, responsive UI. This project focuses on providing a smooth and interactive experience while implementing all the required features as per the provided assignment documentation.
 
-- [Video playlist](https://www.youtube.com/watch?v=EH3vGeqeIAo&list=PLu71SKxNbfoBGh_8p_NS-ZAh6v7HhYqHW)
+## Features
 
----
-# Summary of this project
+- **User Registration:** 
+  - New users cannot be created in the backend. To register, use the provided credentials:
+    - **Email:** `george.bluth@reqres.in`
+    - **Password:** `cityslicka`
 
-This project is a complex backend project that is built with nodejs, expressjs, mongodb, mongoose, jwt, bcrypt, and many more. This project is a complete backend project that has all the features that a backend project should have.
-We are building a complete video hosting website similar to youtube with all the features like login, signup, upload video, like, dislike, comment, reply, subscribe, unsubscribe, and many more.
+- **User Login:** 
+  - Log in using the predefined credentials:
+    - **Email:** `eve.holt@reqres.in`
+    - **Password:** `pisto`
+  - Once logged in, users will remain logged in based on the saved token from the previous session.
 
-Project uses all standard practices like JWT, bcrypt, access tokens, refresh Tokens and many more. We have spent a lot of time in building this project and we are sure that you will learn a lot from this project.
+- **Task Management:**
+  - **Task Creation:** 
+    - Tasks created are added to the local list for user interaction. However, they are not updated on the server due to API limitations. Tasks will not persist if the app is restarted, as they are stored temporarily.
+  - **Task Update:** 
+    - Tasks retrieved from the API can be updated. However, locally created tasks cannot be updated due to server limitations.
+  - **Task Filtering:** 
+    - Use the orange button at the top of the page to filter tasks assigned to you or all users.
+  - **Task Search:** 
+    - Search tasks from the drawer using either the title or description.
 
----
-Top Contributer to complete all TODOs
+- **User Logout:** 
+  - Users can log out from the drawer.
 
-1. Spiderman (just sample)  [Link to Repo](https://www.youtube.com/@chaiaurcode)
+## Technologies Used
 
---- 
-## How to contribute in this open source Project
+- **Flutter:** For building the UI and managing app state.
+- **Provider:** For state management.
+- **Screen Utils:** For creating a responsive UI.
+- **Lottie JSONs:** For animations.
 
-First, please understand that this is not your regular project to merge your PR. This repo requires you to finish all assignments that are in controller folder. We don't accept half work, please finish all controllers and then reach us out on [Discord](https://hitesh.ai/discord) or [Twitter](https://twitter.com/@hiteshdotcom) and after checking your repo, I will add link to your repo in this readme.
+## Folder Structure
+
+- **Api:**
+  - Contains the models required in the app.
+  - `ApiService.dart` handles all API calls.
+
+- **Const:**
+  - Contains custom widgets in the `Widgets` folder.
+  - `color.dart` defines the color palette used throughout the app.
+
+- **Provider:**
+  - Contains all the provider files for state management and functions performed in the app.
+
+- **Screens:**
+  - Contains all the UI components or view files.
+
+## Limitations
+
+- The app is fixed in portrait mode due to time constraints and UI design considerations.
+- Given the limited time (2 days), extensive testing and additional UI enhancements were not possible. The focus was on implementing all key features within the given timeframe.
+
+## Conclusion
+
+I have made every effort to build the app as smooth and interactive as possible while covering all the required features. I hope you find the app meets your expectations.
+
+## Installation
+
+To run the app on your local machine:
+
+1. Clone this repository:
+   ```bash
+   git clone https://github.com/ToushikBanik123/QuickManage.git
+   ```
+2. Navigate to the project directory:
+   ```bash
+   cd QuickManage
+   ```
+3. Install the dependencies:
+   ```bash
+   flutter pub get
+   ```
+4. Run the app:
+   ```bash
+   flutter run
+   ```
+
+## Screenshots
+
+*Include screenshots of your app here to give viewers a visual representation of the UI and features.*
+
+## Contact
+
+If you have any questions or feedback, feel free to reach out:
+
+- **Email:** toushikbanikofficial@gmail.com
+- **LinkedIn:** https://www.linkedin.com/in/toushikbanik/
