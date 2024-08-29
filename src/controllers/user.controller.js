@@ -27,7 +27,7 @@ const generateAccessAndRefereshTokens = async(userId) =>{
 const registerUser = asyncHandler( async (req, res) => {
     // get user details from frontend
     // validation - not empty
-    // check if user already exists: username, email
+    // check if user already exists: userName, email
     // check for images, check for avatar
     // upload them to cloudinary, avatar
     // create user object - create entry in db
@@ -36,21 +36,21 @@ const registerUser = asyncHandler( async (req, res) => {
     // return res
 
 
-    const {fullName, email, username, password } = req.body
+    const {fullName, email, userName, password } = req.body
     //console.log("email: ", email);
 
     if (
-        [fullName, email, username, password].some((field) => field?.trim() === "")
+        [fullName, email, userName, password].some((field) => field?.trim() === "")
     ) {
         throw new ApiError(400, "All fields are required")
     }
 
     const existedUser = await User.findOne({
-        $or: [{ username }, { email }]
+        $or: [{ userName }, { email }]
     })
 
     if (existedUser) {
-        throw new ApiError(409, "User with email or username already exists")
+        throw new ApiError(409, "User with email or userName already exists")
     }
     //console.log(req.files);
 
@@ -81,7 +81,7 @@ const registerUser = asyncHandler( async (req, res) => {
         coverImage: coverImage?.url || "",
         email, 
         password,
-        username: username.toLowerCase()
+        userName: userName.toLowerCase()
     })
 
     const createdUser = await User.findById(user._id).select(
@@ -100,27 +100,27 @@ const registerUser = asyncHandler( async (req, res) => {
 
 const loginUser = asyncHandler(async (req, res) =>{
     // req body -> data
-    // username or email
+    // userName or email
     //find the user
     //password check
     //access and referesh token
     //send cookie
 
-    const {email, username, password} = req.body
+    const {email, userName, password} = req.body
     console.log(email);
 
-    if (!username && !email) {
-        throw new ApiError(400, "username or email is required")
+    if (!userName && !email) {
+        throw new ApiError(400, "userName or email is required")
     }
     
     // Here is an alternative of above code based on logic discussed in video:
-    // if (!(username || email)) {
-    //     throw new ApiError(400, "username or email is required")
+    // if (!(userName || email)) {
+    //     throw new ApiError(400, "userName or email is required")
         
     // }
 
     const user = await User.findOne({
-        $or: [{username}, {email}]
+        $or: [{userName}, {email}]
     })
 
     if (!user) {
@@ -355,16 +355,16 @@ const updateUserCoverImage = asyncHandler(async(req, res) => {
 
 
 const getUserChannelProfile = asyncHandler(async(req, res) => {
-    const {username} = req.params
+    const {userName} = req.params
 
-    if (!username?.trim()) {
-        throw new ApiError(400, "username is missing")
+    if (!userName?.trim()) {
+        throw new ApiError(400, "userName is missing")
     }
 
     const channel = await User.aggregate([
         {
             $match: {
-                username: username?.toLowerCase()
+                userName: userName?.toLowerCase()
             }
         },
         {
@@ -403,7 +403,7 @@ const getUserChannelProfile = asyncHandler(async(req, res) => {
         {
             $project: {
                 fullName: 1,
-                username: 1,
+                userName: 1,
                 subscribersCount: 1,
                 channelsSubscribedToCount: 1,
                 isSubscribed: 1,
@@ -450,7 +450,7 @@ const getWatchHistory = asyncHandler(async(req, res) => {
                                 {
                                     $project: {
                                         fullName: 1,
-                                        username: 1,
+                                        userName: 1,
                                         avatar: 1
                                     }
                                 }
