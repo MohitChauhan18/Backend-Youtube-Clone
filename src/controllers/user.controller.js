@@ -1,7 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import {ApiError} from "../utils/ApiError.js"
 import { User} from "../models/user.model.js"
-import {uploadOnCloudinary} from "../utils/cloudinary.js"
+import {uploadOnCloudinary, deleteFromCloudinary} from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken"
 import mongoose from "mongoose";
@@ -70,7 +70,7 @@ const registerUser = asyncHandler( async (req, res) => {
     const avatar = await uploadOnCloudinary(avatarLocalPath)
     const coverImage = await uploadOnCloudinary(coverImageLocalPath)
 
-    if (!avatar) {
+    if (!avatar.url) {
         throw new ApiError(400, "Avatar file is required")
     }
    
@@ -81,7 +81,9 @@ const registerUser = asyncHandler( async (req, res) => {
         coverImage: coverImage?.url || "",
         email, 
         password,
-        username: username.toLowerCase()
+        username: username.toLowerCase(),
+        avatar_public_id: avatar.public_id,
+        coverImage_public_id: coverImage?.public_id || ""
     })
 
     const createdUser = await User.findById(user._id).select(
@@ -302,15 +304,30 @@ const updateUserAvatar = asyncHandler(async(req, res) => {
         
     }
 
+    const userinfo = await User.findById(req.user?._id);
+
+    const avatar_public_id = userinfo?.avatar_public_id;
+    
+
+
+
     const user = await User.findByIdAndUpdate(
         req.user?._id,
         {
             $set:{
-                avatar: avatar.url
+                avatar: avatar.url,
+                avatar_public_id: avatar.public_id
             }
         },
         {new: true}
-    ).select("-password")
+    ).select("-password");
+
+    await deleteFromCloudinary(avatar_public_id).then(response => {
+        console.log("Deletion response:", response);
+    })
+    .catch(error => {
+        console.error("Deletion failed:", error);
+    });
 
     return res
     .status(200)
@@ -336,15 +353,26 @@ const updateUserCoverImage = asyncHandler(async(req, res) => {
         
     }
 
+    const userinfo = await User.findById(req.user?._id);
+    const coverImage_public_id = userinfo?.coverImage_public_id;
+
     const user = await User.findByIdAndUpdate(
         req.user?._id,
         {
             $set:{
-                coverImage: coverImage.url
+                coverImage: coverImage.url,
+                coverImage_public_id: coverImage.public_id
             }
         },
         {new: true}
-    ).select("-password")
+    ).select("-password");
+
+    await deleteFromCloudinary(coverImage_public_id).then(response => {
+        console.log("Deletion response:", response);
+    })
+    .catch(error => {
+        console.error("Deletion failed:", error);
+    });
 
     return res
     .status(200)

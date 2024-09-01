@@ -12,6 +12,7 @@ const userSchema = new Schema(
             trim: true, 
             index: true
         },
+        
         email: {
             type: String,
             required: true,
@@ -19,6 +20,7 @@ const userSchema = new Schema(
             lowecase: true,
             trim: true, 
         },
+
         fullName: {
             type: String,
             required: true,
@@ -44,6 +46,16 @@ const userSchema = new Schema(
         },
         refreshToken: {
             type: String
+        },
+
+        avatar_public_id: {
+            type: String,
+            required: true
+        },
+
+        coverImage_public_id: {
+            type: String,
+            required: true
         }
 
     },
