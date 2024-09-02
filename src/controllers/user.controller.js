@@ -77,8 +77,8 @@ const registerUser = asyncHandler( async (req, res) => {
 
     const user = await User.create({
         fullName,
-        avatar: avatar.url,
-        coverImage: coverImage?.url || "",
+        avatar: avatar.secure_url,
+        coverImage: coverImage?.secure_url || "",
         email, 
         password,
         username: username.toLowerCase()
@@ -107,18 +107,11 @@ const loginUser = asyncHandler(async (req, res) =>{
     //send cookie
 
     const {email, username, password} = req.body
-    console.log(email);
 
     if (!username && !email) {
         throw new ApiError(400, "username or email is required")
     }
     
-    // Here is an alternative of above code based on logic discussed in video:
-    // if (!(username || email)) {
-    //     throw new ApiError(400, "username or email is required")
-        
-    // }
-
     const user = await User.findOne({
         $or: [{username}, {email}]
     })
@@ -138,8 +131,10 @@ const loginUser = asyncHandler(async (req, res) =>{
     const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
 
     const options = {
+        maxAge: 3 * 60 * 60 * 1000, // In milli second
         httpOnly: true,
-        secure: true
+        secure: true,
+        sameSite: "None",
     }
 
     return res
@@ -234,8 +229,6 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 const changeCurrentPassword = asyncHandler(async(req, res) => {
     const {oldPassword, newPassword} = req.body
 
-    
-
     const user = await User.findById(req.user?._id)
     const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
 
@@ -297,9 +290,9 @@ const updateUserAvatar = asyncHandler(async(req, res) => {
     const sp = oldCloudinaryAvatarPathId.split("/");
     const pathId = sp[sp.length - 1].split(".").shift();
 
-    const avatar = await uploadCloudinary(avatarLocalPath);
+    const avatar = await uploadOnCloudinary(avatarLocalPath);
 
-    if (!avatar.url) {
+    if (!avatar.secure_url) {
         throw new ApiError(400, "Error while uploading avatar to cloudinary.");
     }
 
@@ -307,7 +300,7 @@ const updateUserAvatar = asyncHandler(async(req, res) => {
         req.user?._id,
         {
             $set: {
-                avatar: avatar.url,
+                avatar: avatar.secure_url,
             },
         },
         { new: true }
@@ -315,18 +308,14 @@ const updateUserAvatar = asyncHandler(async(req, res) => {
 
     // TODO: Delete old avatar image from cloudinary
     try {
-        const resp = await deleteFromCloudinary(pathId);
-        if (resp) {
-            console.log(resp);
-            console.log("Old avatar is deleted.");
-        }
+        await deleteFromCloudinary(pathId);
     } catch (error) {
         throw new ApiError(401, "Error while remove old avatar.");
     }
 
     return res
         .status(200)
-        .json(new ApiResponse(200, avatar.url, "Avatar uploaded succesfully."));
+        .json(new ApiResponse(200, avatar.secure_url, "Avatar uploaded succesfully."));
 })
 
 const updateUserCoverImage = asyncHandler(async(req, res) => {
@@ -340,9 +329,9 @@ const updateUserCoverImage = asyncHandler(async(req, res) => {
     const sp = oldCloudinaryCoverImagePathId.split("/");
     const pathId = sp[sp.length - 1].split(".").shift();
 
-    const coverImage = await uploadCloudinary(coverImageLocalPath);
+    const coverImage = await uploadOnCloudinary(coverImageLocalPath);
 
-    if (!coverImage.url) {
+    if (!coverImage.secure_url) {
         throw new ApiError(
             400,
             "Error while uploading cover image to cloudinary."
@@ -353,7 +342,7 @@ const updateUserCoverImage = asyncHandler(async(req, res) => {
         req.user?._id,
         {
             $set: {
-                coverimage: coverImage.url,
+                coverimage: coverImage.secure_url,
             },
         },
         { new: true }
@@ -361,11 +350,7 @@ const updateUserCoverImage = asyncHandler(async(req, res) => {
 
     // TODO: Delete old cover image from cloudinary
     try {
-        const resp = await deleteFromCloudinary(pathId);
-        if (resp) {
-            console.log(resp);
-            console.log("Old cover image is deleted.");
-        }
+        await deleteFromCloudinary(pathId);
     } catch (error) {
         throw new ApiError(401, "Error while remove old cover image.");
     }
@@ -375,7 +360,7 @@ const updateUserCoverImage = asyncHandler(async(req, res) => {
         .json(
             new ApiResponse(
                 200,
-                coverImage.url,
+                coverImage.secure_url,
                 "Cover image uploaded succesfully."
             )
         );
@@ -458,15 +443,18 @@ const getWatchHistory = asyncHandler(async(req, res) => {
     const user = await User.aggregate([
         {
             $match: {
-                _id: new mongoose.Types.ObjectId(req.user._id)
-            }
+                // when using pipeline code directly goes to monogodb, so we have create the id in the format of mongodb by ourself
+                // normally mongoose takes the id and convert it to the format of mongodb
+                _id: new mongoose.Types.ObjectId(req.user._id),
+            },
         },
+        { $unwind: "$watchHistory" }, // Deconstruct the watchHistory array
         {
             $lookup: {
-                from: "videos",
+                from: "videos", // Collection to join with
                 localField: "watchHistory",
                 foreignField: "_id",
-                as: "watchHistory",
+                as: "details",
                 pipeline: [
                     {
                         $lookup: {
@@ -477,22 +465,31 @@ const getWatchHistory = asyncHandler(async(req, res) => {
                             pipeline: [
                                 {
                                     $project: {
-                                        fullName: 1,
+                                        fullname: 1,
                                         username: 1,
                                         avatar: 1
                                     }
-                                }
+                                }   
                             ]
                         }
                     },
                     {
-                        $addFields:{
-                            owner:{
-                                $first: "$owner"
-                            }
-                        }
-                    }
+                        $addFields: {
+                            owner: {
+                                $first: "$owner",
+                            },
+                        },
+                    },
                 ]
+            },
+        },
+        {
+            $unwind: "$details"
+        },
+        {
+            $project: { 
+
+                details: 1
             }
         }
     ])

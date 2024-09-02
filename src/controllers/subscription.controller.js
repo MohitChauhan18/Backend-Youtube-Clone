@@ -72,24 +72,40 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
     const channel = await Subscription.aggregate([
         {
             $match: {
-                $and: [
+                subscriber: new mongoose.Types.ObjectId(`${channelId}`)
+            }
+        },
+        {
+            $lookup: {
+                from: "users",
+                localField: "channel",
+                foreignField: "_id",
+                as: "details",
+                pipeline: [
                     {
-                        channel: new mongoose.Types.ObjectId(`${channelId}`),
-                        subscriber: new mongoose.Types.ObjectId(`${req.user._id}`)
+                        $project: {
+                            fullname: 1,
+                            avatar: 1,
+                            username: 1
+                        }
                     }
                 ]
             }
-        }
+        },
+        {
+            $addFields: {
+                details: {
+                    $first: "$details",
+                },
+            },
+        },
     ])
-
-    const isSubscribed = channel.length;
 
     return res
     .status(200)
     .json(
-        new ApiResponse(200, isSubscribed, "User subscribed or not is checked.")
+        new ApiResponse(200, channel, "Succesfully fetched number of subscribed channels for the given subscriberID.")
     )
-
 })
 
 export {

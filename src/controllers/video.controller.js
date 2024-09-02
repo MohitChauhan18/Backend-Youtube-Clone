@@ -79,8 +79,8 @@ const publishAVideo = asyncHandler(async (req, res) => {
         throw new ApiError(400, "All field are required!");
     }
 
-    const thumbnail = await uploadCloudinary(thumbnailLocalPath);
-    const videoFile = await uploadCloudinary(videoFileLocalPath);
+    const thumbnail = await uploadOnCloudinary(thumbnailLocalPath);
+    const videoFile = await uploadOnCloudinary(videoFileLocalPath);
 
     if (!thumbnail) {
         throw new ApiError(400, "Thumbnail link is required");
@@ -91,8 +91,8 @@ const publishAVideo = asyncHandler(async (req, res) => {
     }
 
     const video = await Video.create({
-        videoFile: videoFile.url,
-        thumbnail: thumbnail.url,
+        videoFile: videoFile.secure_url,
+        thumbnail: thumbnail.secure_url,
         title,
         description,
         duration: videoFile.duration,
@@ -121,7 +121,7 @@ const getVideoById = asyncHandler(async (req, res) => {
 
     const responce = await Video.findById(videoId);
 
-    console.log("Printing responce of updateVideo: ", responce);
+    // console.log("Printing responce of updateVideo: ", responce);
     if (!responce) {
         throw new ApiError(400, "Failed to get Video details.");
     }
@@ -148,9 +148,9 @@ const updateVideo = asyncHandler(async (req, res) => {
 
     let thumbnail;
     if (thumbnailLocalPath) {
-        thumbnail = await uploadCloudinary(thumbnailLocalPath);
+        thumbnail = await uploadOnCloudinary(thumbnailLocalPath);
 
-        if (!thumbnail.url) {
+        if (!thumbnail.secure_url) {
             throw new ApiError(
                 400,
                 "Error while updating thumbnail in cloudinary."
@@ -193,7 +193,7 @@ const deleteVideo = asyncHandler(async (req, res) => {
         _id: ObjectID(`${videoId}`),
     });
 
-    console.log("Printing delete Responce: ", deleteResponce);
+    // console.log("Printing delete Responce: ", deleteResponce);
     if (!deleteResponce.acknowledged) {
         throw new ApiError(400, "Error while deteing video from db");
     }

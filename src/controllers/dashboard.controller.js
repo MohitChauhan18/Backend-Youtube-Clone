@@ -75,14 +75,14 @@ const getChannelStats = asyncHandler(async (req, res) => {
       ]);
   
       if (!responce) {
-          console.log("Respince 1: ", responce);
+        //   console.log("Respince 1: ", responce);
           throw new ApiError(
               500,
               "Something went wrong while fetching dashboard data !"
           );
       }
   
-      console.log("Respince: ", responce);
+    //   console.log("Respince: ", responce);
       return res
           .status(200)
           .json(new ApiResponse(200, responce, "Fetched user dashboard data !"));
@@ -94,26 +94,50 @@ const getChannelVideos = asyncHandler(async (req, res) => {
     const userId = req.user._id;
 
     const responce = await Video.aggregate([
-        {
-            $match: {
-                owner: new mongoose.Types.ObjectId(userId),
-            },
-        },
-        {
-            $lookup: {
-                from: "likes",
-                localField: "_id",
-                foreignField: "video",
-                as: "likes",
-            },
-        },
-        {
-            $addFields: {
-                likes: {
-                    $size: "$likes",
+            {
+                $match: {
+                    owner: new mongoose.Types.ObjectId(userId),
                 },
             },
-        },
+            {
+                $lookup: {
+                    from: "likes",
+                    localField: "_id",
+                    foreignField: "video",
+                    as: "likes",
+                },
+            },
+            {
+                $project: {
+                    videoFile: 1,
+                    thumbnail: 1,
+                    title: 1,
+                    isPublished: 1,
+                    createdAt: 1,
+                    owner: 1,
+                    description: 1,
+                    likes: {$size: "$likes"},
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    totalLikes: { $sum: "$likes" },
+                    videos: {
+                        $push: {
+                          _id: "$_id",
+                          videoFile: "$videoFile",
+                          thumbnail: "$thumbnail",
+                          title: "$title",
+                          isPublished: "$isPublished",
+                          createdAt: "$createdAt",
+                          owner: "$owner",
+                          likes: "$likes",
+                          description: "$description"
+                        }
+                    }
+                }
+            },
     ]);
 
     if (!responce) {
