@@ -1,7 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import {ApiError} from "../utils/ApiError.js"
 import { User} from "../models/user.model.js"
-import {uploadOnCloudinary} from "../utils/cloudinary.js"
+import {uploadOnCloudinary, deleteFromCloudinary} from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken"
 import mongoose from "mongoose";
@@ -77,8 +77,8 @@ const registerUser = asyncHandler( async (req, res) => {
 
     const user = await User.create({
         fullName,
-        avatar: avatar.url,
-        coverImage: coverImage?.url || "",
+        avatar: avatar.secure_url,
+        coverImage: coverImage?.secure_url || "",
         email, 
         password,
         username: username.toLowerCase()
@@ -107,18 +107,11 @@ const loginUser = asyncHandler(async (req, res) =>{
     //send cookie
 
     const {email, username, password} = req.body
-    console.log(email);
 
     if (!username && !email) {
         throw new ApiError(400, "username or email is required")
     }
     
-    // Here is an alternative of above code based on logic discussed in video:
-    // if (!(username || email)) {
-    //     throw new ApiError(400, "username or email is required")
-        
-    // }
-
     const user = await User.findOne({
         $or: [{username}, {email}]
     })
@@ -138,8 +131,10 @@ const loginUser = asyncHandler(async (req, res) =>{
     const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
 
     const options = {
+        maxAge: 3 * 60 * 60 * 1000, // In milli second
         httpOnly: true,
-        secure: true
+        secure: true,
+        sameSite: "None",
     }
 
     return res
@@ -234,8 +229,6 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 const changeCurrentPassword = asyncHandler(async(req, res) => {
     const {oldPassword, newPassword} = req.body
 
-    
-
     const user = await User.findById(req.user?._id)
     const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
 
@@ -287,70 +280,90 @@ const updateAccountDetails = asyncHandler(async(req, res) => {
 });
 
 const updateUserAvatar = asyncHandler(async(req, res) => {
-    const avatarLocalPath = req.file?.path
+    const avatarLocalPath = req.file?.path;
 
     if (!avatarLocalPath) {
-        throw new ApiError(400, "Avatar file is missing")
+        throw new ApiError(401, "Avatar is missing.");
     }
 
-    //TODO: delete old image - assignment
+    const oldCloudinaryAvatarPathId = req.user?.avatar;
+    const sp = oldCloudinaryAvatarPathId.split("/");
+    const pathId = sp[sp.length - 1].split(".").shift();
 
-    const avatar = await uploadOnCloudinary(avatarLocalPath)
+    const avatar = await uploadOnCloudinary(avatarLocalPath);
 
-    if (!avatar.url) {
-        throw new ApiError(400, "Error while uploading on avatar")
-        
+    if (!avatar.secure_url) {
+        throw new ApiError(400, "Error while uploading avatar to cloudinary.");
     }
 
-    const user = await User.findByIdAndUpdate(
+    await User.findByIdAndUpdate(
         req.user?._id,
         {
-            $set:{
-                avatar: avatar.url
-            }
+            $set: {
+                avatar: avatar.secure_url,
+            },
         },
-        {new: true}
-    ).select("-password")
+        { new: true }
+    ).select("-password");
+
+    // TODO: Delete old avatar image from cloudinary
+    try {
+        await deleteFromCloudinary(pathId);
+    } catch (error) {
+        throw new ApiError(401, "Error while remove old avatar.");
+    }
 
     return res
-    .status(200)
-    .json(
-        new ApiResponse(200, user, "Avatar image updated successfully")
-    )
+        .status(200)
+        .json(new ApiResponse(200, avatar.secure_url, "Avatar uploaded succesfully."));
 })
 
 const updateUserCoverImage = asyncHandler(async(req, res) => {
-    const coverImageLocalPath = req.file?.path
+    const coverImageLocalPath = req.file?.path;
 
     if (!coverImageLocalPath) {
-        throw new ApiError(400, "Cover image file is missing")
+        throw new ApiError(400, "Cover image is missing.");
     }
 
-    //TODO: delete old image - assignment
+    const oldCloudinaryCoverImagePathId = req.user?.coverimage;
+    const sp = oldCloudinaryCoverImagePathId.split("/");
+    const pathId = sp[sp.length - 1].split(".").shift();
 
+    const coverImage = await uploadOnCloudinary(coverImageLocalPath);
 
-    const coverImage = await uploadOnCloudinary(coverImageLocalPath)
-
-    if (!coverImage.url) {
-        throw new ApiError(400, "Error while uploading on avatar")
-        
+    if (!coverImage.secure_url) {
+        throw new ApiError(
+            400,
+            "Error while uploading cover image to cloudinary."
+        );
     }
 
-    const user = await User.findByIdAndUpdate(
+    await User.findByIdAndUpdate(
         req.user?._id,
         {
-            $set:{
-                coverImage: coverImage.url
-            }
+            $set: {
+                coverimage: coverImage.secure_url,
+            },
         },
-        {new: true}
-    ).select("-password")
+        { new: true }
+    ).select("-password");
+
+    // TODO: Delete old cover image from cloudinary
+    try {
+        await deleteFromCloudinary(pathId);
+    } catch (error) {
+        throw new ApiError(401, "Error while remove old cover image.");
+    }
 
     return res
-    .status(200)
-    .json(
-        new ApiResponse(200, user, "Cover image updated successfully")
-    )
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                coverImage.secure_url,
+                "Cover image uploaded succesfully."
+            )
+        );
 })
 
 
@@ -430,15 +443,18 @@ const getWatchHistory = asyncHandler(async(req, res) => {
     const user = await User.aggregate([
         {
             $match: {
-                _id: new mongoose.Types.ObjectId(req.user._id)
-            }
+                // when using pipeline code directly goes to monogodb, so we have create the id in the format of mongodb by ourself
+                // normally mongoose takes the id and convert it to the format of mongodb
+                _id: new mongoose.Types.ObjectId(req.user._id),
+            },
         },
+        { $unwind: "$watchHistory" }, // Deconstruct the watchHistory array
         {
             $lookup: {
-                from: "videos",
+                from: "videos", // Collection to join with
                 localField: "watchHistory",
                 foreignField: "_id",
-                as: "watchHistory",
+                as: "details",
                 pipeline: [
                     {
                         $lookup: {
@@ -449,22 +465,31 @@ const getWatchHistory = asyncHandler(async(req, res) => {
                             pipeline: [
                                 {
                                     $project: {
-                                        fullName: 1,
+                                        fullname: 1,
                                         username: 1,
                                         avatar: 1
                                     }
-                                }
+                                }   
                             ]
                         }
                     },
                     {
-                        $addFields:{
-                            owner:{
-                                $first: "$owner"
-                            }
-                        }
-                    }
+                        $addFields: {
+                            owner: {
+                                $first: "$owner",
+                            },
+                        },
+                    },
                 ]
+            },
+        },
+        {
+            $unwind: "$details"
+        },
+        {
+            $project: { 
+
+                details: 1
             }
         }
     ])
