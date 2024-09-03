@@ -24,7 +24,8 @@ export const verifyJWT = asyncHandler(async(req, _, next) => {
         req.user = user;
         next()
     } catch (error) {
-        throw new ApiError(401, error?.message || "Invalid access token")
+        throw new ApiError(error?.statusCode || 401, error?.message || "Invalid access token") // Hardcoding the status code here overrides the one set in the try block. Instead, use error?.statusCode to preserve it.
+
     }
     
 })
