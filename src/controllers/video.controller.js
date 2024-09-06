@@ -21,12 +21,12 @@ const publishAVideo = asyncHandler(async (req, res) => {
     throw new ApiError(400, "All fields required");
   }
 
-  const videoFileLocalPath = req.files.videoFile[0].path;
+  const videoFileLocalPath = req.files?.videoFile[0]?.path;
   if (!videoFileLocalPath) {
     throw new ApiError(400, "Video file is rquired");
   }
 
-  const thumbnailFileLocalPath = req.files.thumbnail[0].path;
+  const thumbnailFileLocalPath = req.files?.thumbnail[0]?.path;
   if (!thumbnailFileLocalPath) {
     throw new ApiError(400, "Thumbnail file is rquired");
   }
