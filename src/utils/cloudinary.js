@@ -1,4 +1,5 @@
 import {v2 as cloudinary} from "cloudinary"
+import {extractPublicId} from "cloudinary-build-url"
 import fs from "fs"
 
 
@@ -26,6 +27,33 @@ const uploadOnCloudinary = async (localFilePath) => {
     }
 }
 
+const deleteInCloudinary = async (fileUrl)=>{
+    try {
+        if (!fileUrl) {
+            return null
+        }
+        const publicId = extractPublicId(fileUrl)
+        if (!publicId) {
+            return null
+        }
+        
+        let resourceType = "image"; // Default to image
+        if (fileUrl.match(/\.(mp4|mkv|mov|avi)$/)) {
+            resourceType = "video";
+        } else if (fileUrl.match(/\.(mp3|wav)$/)) {
+            resourceType = "raw"; // For audio or other file types
+        }
+
+        const res = await cloudinary.uploader.destroy(publicId,{resource_type:resourceType})
+        return res;
+    } catch (error) {
+        return null;
+    }
+}
 
 
-export {uploadOnCloudinary}
+
+export {
+    uploadOnCloudinary,
+    deleteInCloudinary
+}
