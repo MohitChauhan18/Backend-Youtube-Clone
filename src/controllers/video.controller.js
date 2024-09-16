@@ -78,8 +78,6 @@ const publishAVideo = asyncHandler(async (req, res) => {
         if (!title || !description) {
             throw new ApiError(400,"Please fill title and description")
         }
-        
-        console.log(req.files)
         const videoFileLocatPath = req?.files?.videoFile[0]?.path
         if (!videoFileLocatPath) {
             throw new ApiError(400,"Video File not found")
