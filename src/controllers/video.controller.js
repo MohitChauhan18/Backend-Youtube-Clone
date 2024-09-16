@@ -71,11 +71,16 @@ const publishAVideo = asyncHandler(async (req, res) => {
     try {
         const { title, description} = req.body
         // TODO: get video, upload to cloudinary, create video
+        // console.log(title);
+        // console.log(description);
+        
+        
         if (!title || !description) {
             throw new ApiError(400,"Please fill title and description")
         }
         
-        const videoFileLocatPath = req.files?.videoFile[0]?.path
+        console.log(req.files)
+        const videoFileLocatPath = req?.files?.videoFile[0]?.path
         if (!videoFileLocatPath) {
             throw new ApiError(400,"Video File not found")
         }
@@ -85,7 +90,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
             throw new ApiError(400,"Uploding of Video file failed")
         }
     
-        const thumbnailLocalPath = req.files?.thumbnail[0]?.path
+        const thumbnailLocalPath = req?.files?.thumbnail[0]?.path
     
         if (!thumbnailLocalPath) {
             throw new ApiError(400,"Thumbnail not found")
@@ -163,7 +168,7 @@ const updateVideo = asyncHandler(async (req, res) => {
 */
 //for Above the time taken for prosessing is larger we can use below
 
-        if (!(video?.owner !== req.user?._id)) {
+        if (!((video?.owner).equals(req.user?._id))) {
             throw new ApiError(400,"You cannot Update the details")
         }
 
@@ -173,7 +178,7 @@ const updateVideo = asyncHandler(async (req, res) => {
             throw new ApiError(400,"old thumbnail not deleted")
         }
 
-        const newThumbnailLocationFile = req.file?.path
+        const newThumbnailLocationFile = req?.file?.path
     
         if (!newThumbnailLocationFile) {
             throw new ApiError(400,"new Thumbnail Path not found")
@@ -218,7 +223,7 @@ const deleteVideo = asyncHandler(async (req, res) => {
             throw new ApiError(400,"Please give video Id")
         }
         const video = await Video.findById(videoId)
-        if (!(video?.owner !== req.user?._id)) {
+        if (!((video?.owner).equals(req.user?._id))) {
             throw new ApiError(400,"You cannot Update the details")
         }
         const videoDelete = await deleteInCloudinary(video.videoFile)
@@ -239,7 +244,7 @@ const deleteVideo = asyncHandler(async (req, res) => {
 const togglePublishStatus = asyncHandler(async (req, res) => {
     const { videoId } = req.params
     const video = await Video.findById(videoId)
-    if (!(video?.owner !== req.user?._id)) {
+    if (!((video?.owner).equals(req.user?._id))) {
         throw new ApiError(400,"You cannot Update the details")
     }
     const videoChanged = await Video.findByIdAndUpdate(
