@@ -46,15 +46,12 @@ const getUserTweets = asyncHandler(async (req, res) => {
     // return the tweets
     
     try {
-        const user = await User.findById(req.params.userId)
-        if (!user) {
-            throw new ApiError(
-                400,
-                "User do not exist"
-            )
+        const userId = req.params?.userId
+        if (!isValidObjectId(userId)) {
+            throw new ApiError(400,"Invalid UserId")
         }
     
-        const tweet = await Tweet.find({owner:user._id})
+        const tweet = await Tweet.find({owner:userId})
         
         if (tweet.length === 0 ) {
             throw new ApiError(404,"No tweets found")
@@ -131,11 +128,15 @@ const deleteTweet = asyncHandler(async (req, res) => {
     //check owner and user
     //delete and send response
     try {
-        const tweet = await Tweet.findById(req.params.tweetId)
+        const tweetId = req.params?.tweetId
+        if (!isValidObjectId(tweetId)) {
+            throw new ApiError(400,"Invalid Tweeet Id")
+        }
+        const tweet = await Tweet.findById(tweetId)
         if (!tweet) {
             throw new ApiError(400,"No such Tweet found")
         }
-        if (!((tweet?.owner).equals(req.user?._id))){
+        if (!((tweet.owner).equals(req.user?._id))){
             throw new ApiError(400,"You cannot delete this tweet")
         }
         const response = await Tweet.findByIdAndDelete(tweet._id)
