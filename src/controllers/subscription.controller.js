@@ -49,7 +49,7 @@ const toggleSubscription = asyncHandler(async (req, res) => {
             .json(
                 new ApiResponse(
                     200,
-                    null,
+                    unSub,
                     "UnSubed from Channel"
                 )
             )

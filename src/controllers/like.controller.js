@@ -41,10 +41,10 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
             )
         }
         return res
-        .status(204)
+        .status(200)
         .json(
             new ApiResponse(
-                204,
+                200,
                 unliked,
                 "Unliked video"
             )
@@ -78,8 +78,8 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
             )
         }
         const unlike = await Like.findByIdAndDelete(liked._id)
-        return res.status(204).json(new ApiResponse(
-            204,
+        return res.status(200).json(new ApiResponse(
+            200,
             unlike,
             "Unliked Comment"
         ))
@@ -112,8 +112,8 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
             )
         }
         const unlike = await Like.findByIdAndDelete(liked._id)
-        return res.status(204).json(new ApiResponse(
-            204,
+        return res.status(200).json(new ApiResponse(
+            200,
             unlike,
             "Unliked tweet"
         ))
@@ -124,7 +124,8 @@ const getLikedVideos = asyncHandler(async (req, res) => {
     const likedVod = await Like.aggregate([
         {
             $match:{
-                likedBy: new mongoose.Types.ObjectId(req.user?._id)
+                likedBy: new mongoose.Types.ObjectId(req.user?._id),
+                video: { $exists: true, $ne: null }
             }
         },
         {
@@ -172,6 +173,9 @@ const getLikedVideos = asyncHandler(async (req, res) => {
             }
         },
         {
+            $unwind: "$video"
+        },
+        {
             $project:{
                 video:1,
                 likedBy:1
@@ -183,7 +187,7 @@ const getLikedVideos = asyncHandler(async (req, res) => {
     .json(
         new ApiResponse(
             200,
-            likedVod[0],
+            likedVod,
             "fetched all liked Video"
         )
     )

@@ -133,9 +133,9 @@ const deleteTweet = asyncHandler(async (req, res) => {
             )
         }
         return res
-        .status(204)
+        .status(200)
         .json(new ApiResponse(
-            204,
+            200,
             {},
             "Deleted the Tweet"
         ))

@@ -167,11 +167,11 @@ const deleteComment = asyncHandler(async (req, res) => {
             )
         }
         return res
-        .status(204)
+        .status(200)
         .json(
             new ApiResponse(
-                204,
-                deleteComment,
+                200,
+                deletedComment,
                 "deleted Comment"
             )
         )
