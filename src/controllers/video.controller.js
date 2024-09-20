@@ -68,7 +68,6 @@ const getAllVideos = asyncHandler(async (req, res) => {
 })
 
 const publishAVideo = asyncHandler(async (req, res) => {
-    try {
         const { title, description} = req.body
         // TODO: get video, upload to cloudinary, create video
         // console.log(title);
@@ -122,13 +121,9 @@ const publishAVideo = asyncHandler(async (req, res) => {
                 "Video uploaded"
             )
         )
-    } catch (error) {
-        throw new ApiError(400,error?.message || "Error While uploading file")
-    }
 })
 
 const getVideoById = asyncHandler(async (req, res) => {
-    try {
         const { videoId } = req.params
         //TODO: get video by id
         if (!videoId) {
@@ -145,13 +140,9 @@ const getVideoById = asyncHandler(async (req, res) => {
             {video},
             "Video sent")
         )
-    } catch (error) {
-        throw new ApiError(400, error?.message || "Error while sending video")
-    }
 })
 
 const updateVideo = asyncHandler(async (req, res) => {
-    try {
         const { videoId } = req.params
         //TODO: update video details like title, description, thumbnail
         const {title, description} = req.body 
@@ -207,14 +198,9 @@ const updateVideo = asyncHandler(async (req, res) => {
             videoToupdate,
             "Updated Details of vedio"
         ))
-    } catch (error) {
-        throw new ApiError(400,error.message || "Something went wrong in updating vedio details")
-    }
-
 })
 
 const deleteVideo = asyncHandler(async (req, res) => {
-    try {
         const { videoId } = req.params
         //TODO: delete video
         if (!videoId) {
@@ -234,9 +220,6 @@ const deleteVideo = asyncHandler(async (req, res) => {
         }
         const deletedVideo = await Video.findByIdAndDelete(videoId)
         return res.status(204).json(new ApiResponse(204,{deletedVideo},"video and details deleted"))
-    } catch (error) {
-        throw new ApiError(400,error?.message || "Error while deleting video")
-    }
 })
 
 const togglePublishStatus = asyncHandler(async (req, res) => {

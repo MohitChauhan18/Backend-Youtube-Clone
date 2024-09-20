@@ -5,7 +5,6 @@ import {ApiResponse} from "../utils/ApiResponse.js"
 import {asyncHandler} from "../utils/asyncHandler.js"
 
 const toggleVideoLike = asyncHandler(async (req, res) => {
-    try {
         const {videoId} = req.params
         //TODO: toggle like on video
         const findLike = await Like.findOne(
@@ -50,17 +49,9 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
                 "Unliked video"
             )
         )
-    } catch (error) {
-        throw new ApiError(
-            400,
-            error.message || "Error while liking video"
-        )
-    } 
 })
 
 const toggleCommentLike = asyncHandler(async (req, res) => {
-    
-    try {
         const {commentId} = req.params
         //TODO: toggle like on comment
         const liked = await Like.findOne(
@@ -92,13 +83,9 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
             unlike,
             "Unliked Comment"
         ))
-    } catch (error) {
-        throw new ApiError(400,error.message||"Something went wrong while toggling comment Like")
-    }
 })
 
 const toggleTweetLike = asyncHandler(async (req, res) => {
-    try {
         const {tweetId} = req.params
         //TODO: toggle like on tweet
         const liked = await Like.findOne(
@@ -130,11 +117,7 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
             unlike,
             "Unliked tweet"
         ))
-    } catch (error) {
-        throw new ApiError(400,error.message||"Something went wrong while toggling comment Like")
-    }
-}
-)
+})
 
 const getLikedVideos = asyncHandler(async (req, res) => {
     //TODO: get all liked videos

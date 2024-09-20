@@ -8,7 +8,6 @@ import { User } from "../models/user.model.js"
 
 const getVideoComments = asyncHandler(async (req, res) => {
     //TODO: get all comments for a video
-    try {
         const {videoId} = req.params
         const {page = 1, limit = 10} = req.query
         if (!videoId) {
@@ -78,14 +77,10 @@ const getVideoComments = asyncHandler(async (req, res) => {
                 "comments Fetched"
             )
         )
-    } catch (error) {
-        throw new ApiError(400,error.message || "Error while getting comment of video")
-    }
 })
 
 const addComment = asyncHandler(async (req, res) => {
     // TODO: add a comment to a video
-    try {
         const {content} = req.body
         if (!content) {
             throw new ApiError(404,"Please Write something in comment")
@@ -111,14 +106,11 @@ const addComment = asyncHandler(async (req, res) => {
                 "Comment Added"
             )
         )
-    } catch (error) {
-        throw new ApiError(400,error.message||"Something went wrong while adding comment")
-    }
 })
 
 const updateComment = asyncHandler(async (req, res) => {
     // TODO: update a comment
-    try {
+
         const {content} = req.body
         if (!content) {
             throw new ApiError(
@@ -150,14 +142,10 @@ const updateComment = asyncHandler(async (req, res) => {
                 "Updated Comment"
             )
         )
-    } catch (error) {
-        throw new ApiError(400,error.message||"Something went wrong while updating the comment")
-    }
 })
 
 const deleteComment = asyncHandler(async (req, res) => {
     // TODO: delete a comment
-    try {
         const comment = await Comment.findById(req.params?.commentId)
         if (!comment) {
             throw new ApiError(
@@ -187,12 +175,6 @@ const deleteComment = asyncHandler(async (req, res) => {
                 "deleted Comment"
             )
         )
-    } catch (error) {
-        throw new ApiError(
-            400,
-            error.message||"SomeThing went wrong while deleting comment"
-        )
-    }
 })
 
 export {

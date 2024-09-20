@@ -12,7 +12,6 @@ const createTweet = asyncHandler(async (req, res) => {
     // get user from accesstoken
     // create a new Tweet from models and save it
     //send the tweet response
-    try {
         const { content } = req.body
         if (!content) {
             throw new ApiError(400,"please fill the input box")
@@ -33,9 +32,6 @@ const createTweet = asyncHandler(async (req, res) => {
             tweet,
             "tweet is created"
         ))
-    } catch (error) {
-        throw new ApiError(400,error.message||"Something went Wrong while creating tweet")
-    }
 })
 
 const getUserTweets = asyncHandler(async (req, res) => {
@@ -44,8 +40,6 @@ const getUserTweets = asyncHandler(async (req, res) => {
     // check if it exist
     // get all tweets of this user
     // return the tweets
-    
-    try {
         const userId = req.params?.userId
         if (!isValidObjectId(userId)) {
             throw new ApiError(400,"Invalid UserId")
@@ -64,9 +58,6 @@ const getUserTweets = asyncHandler(async (req, res) => {
             {tweet},
             "Fetched Tweet"
         ))
-    } catch (error) {
-        throw new ApiError(400,error.message||"SomeThing went Wrong While getting User")
-    }
 })
 
 const updateTweet = asyncHandler(async (req, res) => {
@@ -75,8 +66,6 @@ const updateTweet = asyncHandler(async (req, res) => {
     //check for tweet
     //verify owner and user of tweet
     //if same update it
-
-    try {
         const {content} = req.body
         if (!content) {
             throw new ApiError(
@@ -116,9 +105,6 @@ const updateTweet = asyncHandler(async (req, res) => {
                 "Updated Tweet"
             )
         )
-    } catch (error) {
-        throw new ApiError(400,error.message||"SomeThing went Wrong While updating Tweet")
-    }
 })
 
 const deleteTweet = asyncHandler(async (req, res) => {
@@ -127,7 +113,6 @@ const deleteTweet = asyncHandler(async (req, res) => {
     //check tweet is there
     //check owner and user
     //delete and send response
-    try {
         const tweetId = req.params?.tweetId
         if (!isValidObjectId(tweetId)) {
             throw new ApiError(400,"Invalid Tweeet Id")
@@ -154,9 +139,6 @@ const deleteTweet = asyncHandler(async (req, res) => {
             {},
             "Deleted the Tweet"
         ))
-    } catch (error) {
-        throw new ApiError(400,error.message||"Something went Wrong while deleting Tweet")
-    }
 })
 
 export {

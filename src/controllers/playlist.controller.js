@@ -6,7 +6,6 @@ import {asyncHandler} from "../utils/asyncHandler.js"
 
 
 const createPlaylist = asyncHandler(async (req, res) => {
-    try {
         const {name, description} = req.body
         //TODO: create playlist
         if(!name || !description){
@@ -37,16 +36,10 @@ const createPlaylist = asyncHandler(async (req, res) => {
                 "Playlist created"
             )
         )
-    } catch (error) {
-        throw new ApiError(
-            400,
-            error.message || "SomeThing went Wrong while creating playlist"
-        )
-    }
 })
 
 const getUserPlaylists = asyncHandler(async (req, res) => {
-    try {
+
         const {userId} = req.params
         //TODO: get user playlists
         if (!isValidObjectId(userId)) {
@@ -148,16 +141,9 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
                 "Got playlist"
             )
         )
-    } catch (error) {
-        throw new ApiError(
-            400,
-            error.message || "Error while getting User Playlist"
-        )
-    }
 })
 
 const getPlaylistById = asyncHandler(async (req, res) => {
-    try {
         const {playlistId} = req.params
         //TODO: get playlist by id
         if (!isValidObjectId(playlistId)) {
@@ -262,16 +248,9 @@ const getPlaylistById = asyncHandler(async (req, res) => {
                 "Fetched playlist"
             )
         )
-    } catch (error) {
-        throw new ApiError(
-            400,
-            error.message||"Error while getting playlist by id"
-        )
-    }
 })
 
 const addVideoToPlaylist = asyncHandler(async (req, res) => {
-    try {
         const {playlistId, videoId} = req.params
         if(!isValidObjectId(playlistId) || !isValidObjectId(videoId)){
             throw new ApiError(
@@ -324,16 +303,9 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
                 "Video added"
             )
         )
-    } catch (error) {
-        throw new ApiError(
-            400,
-            error.message || "Error while adding video to playlist"
-        )
-    }
 })
 
 const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
-    try {
         const {playlistId, videoId} = req.params
         // TODO: remove video from playlist
         if (!isValidObjectId(playlistId) || !isValidObjectId(videoId)) {
@@ -384,16 +356,9 @@ const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
                 "removed video from playlist"
             )
         )
-    } catch (error) {
-        throw new ApiError(
-            400,
-            error.message||"Error while removing playlist"
-        )
-    } 
 })
 
 const deletePlaylist = asyncHandler(async (req, res) => {
-    try {
         const {playlistId} = req.params
         // TODO: delete playlist
         if(!isValidObjectId(playlistId)){
@@ -428,12 +393,6 @@ const deletePlaylist = asyncHandler(async (req, res) => {
                 "successfully deleted playlist"
             )
         )
-    } catch (error) {
-        throw new ApiError(
-            400,
-            error.message || "Error while deleting message"
-        )
-    }
 })
 
 const updatePlaylist = asyncHandler(async (req, res) => {
