@@ -1,7 +1,7 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import {ApiError} from "../utils/ApiError.js"
 import { User} from "../models/user.model.js"
-import {uploadOnCloudinary} from "../utils/cloudinary.js"
+import {deleteInCloudinary, uploadOnCloudinary} from "../utils/cloudinary.js"
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken"
 import mongoose from "mongoose";
@@ -52,9 +52,10 @@ const registerUser = asyncHandler( async (req, res) => {
     if (existedUser) {
         throw new ApiError(409, "User with email or username already exists")
     }
-    //console.log(req.files);
+    // console.log(req.files);
 
     const avatarLocalPath = req.files?.avatar[0]?.path;
+    
     //const coverImageLocalPath = req.files?.coverImage[0]?.path;
 
     let coverImageLocalPath;
@@ -73,7 +74,6 @@ const registerUser = asyncHandler( async (req, res) => {
     if (!avatar) {
         throw new ApiError(400, "Avatar file is required")
     }
-   
 
     const user = await User.create({
         fullName,
@@ -107,7 +107,7 @@ const loginUser = asyncHandler(async (req, res) =>{
     //send cookie
 
     const {email, username, password} = req.body
-    console.log(email);
+    
 
     if (!username && !email) {
         throw new ApiError(400, "username or email is required")
@@ -212,7 +212,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
             secure: true
         }
     
-        const {accessToken, newRefreshToken} = await generateAccessAndRefereshTokens(user._id)
+        const {accessToken, refreshToken:newRefreshToken} = await generateAccessAndRefereshTokens(user._id)
     
         return res
         .status(200)
@@ -294,6 +294,16 @@ const updateUserAvatar = asyncHandler(async(req, res) => {
     }
 
     //TODO: delete old image - assignment
+    const userForAvatar = await User.findById(req.user?._id)
+    if(!userForAvatar){
+        throw new ApiError(400,"No user Found")
+    }
+
+    const oldAvatar = await deleteInCloudinary(userForAvatar.avatar)
+
+    if (oldAvatar !== 'ok') {
+        throw new ApiError(400,"Error while deleting old file")
+    }
 
     const avatar = await uploadOnCloudinary(avatarLocalPath)
 
@@ -328,6 +338,16 @@ const updateUserCoverImage = asyncHandler(async(req, res) => {
 
     //TODO: delete old image - assignment
 
+    const userForCoverImage = await User.findById(req.user?._id)
+    if(!userForCoverImage){
+        throw new ApiError(400,"No user Found")
+    }
+
+    const oldAvatar = await deleteInCloudinary(userForCoverImage.coverImage)
+
+    if (oldAvatar !== 'ok') {
+        throw new ApiError(400,"Error while deleting old file of CoverImage")
+    }
 
     const coverImage = await uploadOnCloudinary(coverImageLocalPath)
 
